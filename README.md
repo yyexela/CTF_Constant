@@ -1,7 +1,7 @@
 ## CTF Constant
 
 This repository contains code that predicts a constant value for provided test matrices. The supported methods are:
-- Predict a constant obtained from a grid-search.
+- Predict a constant obtained from a random-search.
 - Predict the average.
 - Predict zero.
 
