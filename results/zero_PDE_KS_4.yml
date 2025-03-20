@@ -1,0 +1,11 @@
+config: config/config3.yml
+dataset: PDE_KS
+matrix_id: 4
+random_distribution: null
+random_lower_bound: null
+random_n_values: null
+random_seed: null
+random_upper_bound: null
+save_name: zero
+score: 0.0
+search_type: zero

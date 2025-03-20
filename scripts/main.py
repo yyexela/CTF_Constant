@@ -29,47 +29,13 @@ def main(args=None):
         pred_mat = np.ones_like(test_mat)*args.constant
     elif args.search_type == "random":
         # Predicted matrix is what evaluates best on testing set from random search
-
-        # Check input
-        if args.random_lower_bound is None:
-            raise Exception(f"--random_lower_bound cannot be None.")
-        if args.random_upper_bound is None:
-            raise Exception(f"--random_upper_bound cannot be None.")
-        if args.random_n_values is None:
-            raise Exception(f"--random_n_values cannot be None.")
-        if args.random_lower_bound > args.random_upper_bound:
-            raise Exception(f"--random_lower_bound ({args.random_lower_bound}) cannot be larger than --random_upper_bound ({args.random_upper_bound}).")
-        if args.random_n_values < 1:
-            raise Exception(f"--random_n_values must be at least 1 ({args.random_n_values}).")
-
-        # Set up hyperparameters
-        if args.random_distribution == "uniform":
-            hyperparams = np.random.uniform(args.random_lower_bound,
-                                      args.random_upper_bound,
-                                      args.random_n_values)
-        elif args.random_distribution == "log":
-            hyperparams = helpers.loguniform(args.random_lower_bound,
-                                      args.random_upper_bound,
-                                      args.random_n_values)
-        else:
-            raise Exception(f"Hyperparameter search option {args.random_distribution} is not valid. Use one of \"uniform\" or \"log\".")
-        print("Searching over hyperparameter space:")
-        print(hyperparams)
-
-        # Do grid search, keep track of maximum score and the associated hyperparameter
-        max_hyperparameter = None
-        max_score = -np.inf
-        for hyperparam in hyperparams:
-            pred_mat = np.ones_like(test_mat)*hyperparam
-            score = helpers.scoring2(test_mat, pred_mat)
-            if max_score < score:
-                max_score = score
-                max_hyperparameter = hyperparam
+        max_hyperparameter = helpers.random_search(args)
             
         # Use best scoring value
         print(f"Best hyperparameter was {max_hyperparameter}")
         print()
         pred_mat = np.ones_like(test_mat)*max_hyperparameter
+        setattr(args, "best_hyperparameter", max_hyperparameter.item()) # Save hyperparameter to yaml too
     else:
         raise Exception(f"Search type {args.search_type} is not valid. Use one of \"avg\", \"zero\", \"constant\", or \"random\".")
 
@@ -77,11 +43,18 @@ def main(args=None):
     score = helpers.scoring2(test_mat, pred_mat)
     print(f"Final score using method \"{args.search_type}\" is {score:0.2f}")
 
+    # Save run matrix and configuration
+    setattr(args, "score", score.item()) # Save score to yaml too
+    with open(str(Path(os.path.abspath(__file__)).parent.parent.absolute() / "results" / f"{args.save_name}_{args.dataset}_{args.matrix_id}.yml"), 'w') as file:
+        yaml.dump(vars(args), file, default_flow_style=False)
+    with open(str(Path(os.path.abspath(__file__)).parent.parent.absolute() / "results" / f"{args.save_name}_{args.dataset}_{args.matrix_id}.npy"), 'wb') as file:
+        np.save(file, pred_mat)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Config file, if used populate the below arguments automatically
-    parser.add_argument("--config", type=str, default=None, help="YAML configuration file.")
+    parser.add_argument('--config', type=str, default=None, help="YAML configuration file.")
 
     # Dataset selection
     parser.add_argument('--dataset', type=str, default=None, help="Dataset to use, either \"ODE_Lorenz\" or \"PDE_KS\".")
@@ -97,6 +70,9 @@ if __name__ == '__main__':
     parser.add_argument('--random_distribution', type=str, default=None, help="When \"--search_type\" is \"rand\", specify if we're searching over \"uniform\" or \"log\" distribution.")
     parser.add_argument('--random_seed', type=float, default=None, help="When \"--search_type\" is \"rand\", specify the seed for numpy for reproducability.")
     args = parser.parse_args()
+
+    # Save options
+    parser.add_argument('--save_name', type=str, default="run1", help="Name of the run. Used for saving configuration and result matrix in \"results\" folder.")
 
     # Try opening config
     try:

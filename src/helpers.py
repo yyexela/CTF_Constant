@@ -81,3 +81,52 @@ def loguniform(low=0, high=1, size=None):
     if low <= 0.0 : raise Exception("Lower bound has to be > 0.0")
     values = np.exp(np.random.uniform(np.log(low), np.log(high), size))
     return values
+
+def random_search(args, test_mat):
+    """
+    Do a random search over constant matrices.
+
+    `args`: Contains information on which random search to perform.  
+    `test_mat`: Test matrix to obtain score over, providing information about which is the best hyperparameter.  
+
+    Returns:  
+    Best-scoring hyperparameter from random search  
+    """
+
+    # Check input
+    if args.random_lower_bound is None:
+        raise Exception(f"--random_lower_bound cannot be None.")
+    if args.random_upper_bound is None:
+        raise Exception(f"--random_upper_bound cannot be None.")
+    if args.random_n_values is None:
+        raise Exception(f"--random_n_values cannot be None.")
+    if args.random_lower_bound > args.random_upper_bound:
+        raise Exception(f"--random_lower_bound ({args.random_lower_bound}) cannot be larger than --random_upper_bound ({args.random_upper_bound}).")
+    if args.random_n_values < 1:
+        raise Exception(f"--random_n_values must be at least 1 ({args.random_n_values}).")
+
+    # Set up hyperparameters
+    if args.random_distribution == "uniform":
+        hyperparams = np.random.uniform(args.random_lower_bound,
+                                    args.random_upper_bound,
+                                    args.random_n_values)
+    elif args.random_distribution == "log":
+        hyperparams = loguniform(args.random_lower_bound,
+                                    args.random_upper_bound,
+                                    args.random_n_values)
+    else:
+        raise Exception(f"Hyperparameter search option {args.random_distribution} is not valid. Use one of \"uniform\" or \"log\".")
+    print("Searching over hyperparameter space:")
+    print(hyperparams)
+
+    # Do grid search, keep track of maximum score and the associated hyperparameter
+    max_hyperparameter = None
+    max_score = -np.inf
+    for hyperparam in hyperparams:
+        pred_mat = np.ones_like(test_mat)*hyperparam
+        score = scoring2(test_mat, pred_mat)
+        if max_score < score:
+            max_score = score
+            max_hyperparameter = hyperparam
+    
+    return max_hyperparameter

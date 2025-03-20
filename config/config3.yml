@@ -1,0 +1,5 @@
+# Sample random search configuration file
+dataset: PDE_KS
+matrix_id: 4
+search_type: zero
+save_name: zero

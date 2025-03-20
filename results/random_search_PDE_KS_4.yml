@@ -1,0 +1,12 @@
+best_hyperparameter: 1.1002817226254387
+config: ../config/config1.yml
+dataset: PDE_KS
+matrix_id: 4
+random_distribution: log
+random_lower_bound: 1.0
+random_n_values: 10
+random_seed: 10
+random_upper_bound: 100.0
+save_name: random_search
+score: -185.4429433840187
+search_type: random
