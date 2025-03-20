@@ -1,0 +1,8 @@
+dataset: PDE_KS
+matrix_id: 4
+search_type: random
+random_lower_bound: 1.0
+random_upper_bound: 100.0
+random_n_values: 10
+random_distribution: log
+random_seed: 10
